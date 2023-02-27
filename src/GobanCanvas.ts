@@ -1244,12 +1244,13 @@ export class GobanCanvas extends GobanCore {
 
         /* clear and draw lines */
         {
-            const l = i * s + ox;
+            const enlarge = stone_color ? 0 : s * 0.05;
+            const l = i * s + ox ;
             const r = (i + 1) * s + ox;
             const t = j * s + oy;
             const b = (j + 1) * s + oy;
 
-            ctx.clearRect(l, t, r - l, b - t);
+            ctx.clearRect(l - enlarge, t - enlarge, r - l + 2 * enlarge, b - t + 2 * enlarge);
             if (this.shadow_ctx) {
                 let shadow_offset = this.square_size * 0.1;
                 this.shadow_ctx.clearRect(
@@ -1278,24 +1279,24 @@ export class GobanCanvas extends GobanCore {
             cy = t + this.metrics.mid;
 
             /* draw line */
-            let sx = l;
-            let ex = r;
+            let sx = l - enlarge;
+            let ex = r + 2 * enlarge;
             const mx = (r + l) / 2 - this.metrics.offset;
-            let sy = t;
-            let ey = b;
+            let sy = t - enlarge;
+            let ey = b + 2 * enlarge;
             const my = (t + b) / 2 - this.metrics.offset;
 
             if (i === 0) {
-                sx += this.metrics.mid;
+                sx += this.metrics.mid + enlarge;
             }
             if (i === this.width - 1) {
-                ex -= this.metrics.mid;
+                ex -= this.metrics.mid + 2 * enlarge;
             }
             if (j === 0) {
-                sy += this.metrics.mid;
+                sy += this.metrics.mid + enlarge;
             }
             if (j === this.height - 1) {
-                ey -= this.metrics.mid;
+                ey -= this.metrics.mid + 2 * enlarge;
             }
 
             if (i === this.width - 1 && j === this.height - 1) {
@@ -2120,6 +2121,28 @@ export class GobanCanvas extends GobanCore {
         }
 
         this.__draw_state[j][i] = this.drawingHash(i, j);
+
+        if(!stone_color) {
+            this.redrawSurroundingStonesOnly(i, j);
+        }
+    }
+    private redrawSurroundingStonesOnly(i: number, j: number): void {
+        let oi = 1;
+        let oj = 0;
+        do {
+            if(this.checkStoneExists(i + oi, j + oj)) {
+                this.__drawSquare(i + oi, j + oj)
+            }
+            // Circular: oi,oj -> -oj,oi : 1,0 -> 0,1 -> -1,0 -> 0,-1
+            let tmp = oi;
+            oi = -oj;
+            oj = tmp;
+        } while (! (oi == 1 && oj == 0))
+    }
+    private checkStoneExists(i: number, j: number): boolean {
+        if(j < this.bounds.top || j > this.bounds.bottom || i < this.bounds.left || i > this.bounds.right)
+            return false;
+        return this.engine.board[j][i] ? true : false;
     }
     private drawingHash(i: number, j: number): string {
         if (i < 0 || j < 0) {

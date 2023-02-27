@@ -45,7 +45,7 @@ export default function (GoThemes: GoThemesInterface) {
             ctx.arc(
                 cx,
                 cy,
-                Math.max(0.1, radius - lineWidth / 2),
+                Math.max(0.1, radius),
                 0.001,
                 2 * Math.PI,
                 false,
